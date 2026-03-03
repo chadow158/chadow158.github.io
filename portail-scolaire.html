@@ -1,716 +1,360 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EduSpace — Portail Scolaire</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<title>Royaume des Ombres - RPG 3D</title>
 <style>
-  :root {
-    --bg: #0d0f14;
-    --surface: #14171f;
-    --surface2: #1c2030;
-    --border: #2a2f42;
-    --accent: #4f8cff;
-    --accent2: #ff4f7b;
-    --green: #2effa0;
-    --yellow: #ffe066;
-    --text: #e8eaf0;
-    --muted: #6b7280;
-    --sidebar: 220px;
-  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Syne', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    display: flex;
-    height: 100vh;
-    overflow: hidden;
-  }
-
-  /* SIDEBAR */
-  .sidebar {
-    width: var(--sidebar);
-    background: var(--surface);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    flex-shrink: 0;
-  }
-  .logo {
-    padding: 24px 20px 20px;
-    border-bottom: 1px solid var(--border);
-  }
-  .logo-title {
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: var(--accent);
-  }
-  .logo-sub {
-    font-size: 10px;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    margin-top: 2px;
-  }
-  .user-card {
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .avatar {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 14px; color: white; flex-shrink: 0;
-  }
-  .user-info .name { font-size: 13px; font-weight: 700; }
-  .user-info .class { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; }
-
-  nav { flex: 1; padding: 12px 0; overflow-y: auto; }
-  .nav-section { padding: 8px 20px 4px; font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; font-family: 'Space Mono', monospace; }
-  .nav-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 20px; cursor: pointer;
-    font-size: 13px; font-weight: 600;
-    color: var(--muted);
-    transition: all 0.15s;
-    border-left: 3px solid transparent;
-    position: relative;
-  }
-  .nav-item:hover { color: var(--text); background: var(--surface2); }
-  .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(79,140,255,0.06); }
-  .nav-item.triche { color: var(--accent2); }
-  .nav-item.triche.active { color: var(--accent2); border-left-color: var(--accent2); background: rgba(255,79,123,0.06); }
-  .nav-item.triche:hover { color: var(--accent2); }
-  .nav-icon { width: 18px; text-align: center; font-size: 15px; }
-  .badge {
-    margin-left: auto; background: var(--accent2);
-    color: white; border-radius: 10px; font-size: 9px;
-    padding: 2px 6px; font-family: 'Space Mono', monospace; font-weight: 700;
-  }
-  .badge.green { background: var(--green); color: #000; }
-
-  /* MAIN */
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-  .topbar {
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 28px;
-    display: flex; align-items: center; justify-content: space-between;
-    flex-shrink: 0;
-  }
-  .page-title { font-size: 20px; font-weight: 800; }
-  .page-sub { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 2px; }
-  .topbar-actions { display: flex; gap: 10px; align-items: center; }
-  .chip {
-    padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700;
-    border: 1px solid var(--border); color: var(--muted); cursor: pointer;
-    transition: all 0.15s; font-family: 'Space Mono', monospace;
-  }
-  .chip:hover { border-color: var(--accent); color: var(--accent); }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-  .content { flex: 1; overflow-y: auto; padding: 24px 28px; }
-  .content::-webkit-scrollbar { width: 6px; }
-  .content::-webkit-scrollbar-track { background: transparent; }
-  .content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-  /* PAGES */
-  .page { display: none; }
-  .page.active { display: block; animation: fadeIn 0.2s ease; }
-  @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-
-  /* CARDS */
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
-  .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 20px; }
-  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 20px; }
-  .card {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px;
-  }
-  .card-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'Space Mono', monospace; margin-bottom: 8px; }
-  .card-value { font-size: 28px; font-weight: 800; }
-  .card-value.accent { color: var(--accent); }
-  .card-value.green { color: var(--green); }
-  .card-value.yellow { color: var(--yellow); }
-  .card-value.red { color: var(--accent2); }
-  .card-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
-
-  /* TABLE */
-  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 20px; }
-  .table-head { padding: 14px 20px; border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-family: 'Space Mono', monospace; }
-  table { width: 100%; border-collapse: collapse; }
-  th { text-align: left; padding: 10px 20px; font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'Space Mono', monospace; border-bottom: 1px solid var(--border); }
-  td { padding: 12px 20px; font-size: 13px; border-bottom: 1px solid rgba(42,47,66,0.5); }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--surface2); }
-  .note-badge {
-    display: inline-block; padding: 2px 10px; border-radius: 20px;
-    font-size: 12px; font-weight: 700; font-family: 'Space Mono', monospace;
-  }
-  .note-high { background: rgba(46,255,160,0.15); color: var(--green); }
-  .note-mid { background: rgba(255,224,102,0.15); color: var(--yellow); }
-  .note-low { background: rgba(255,79,123,0.15); color: var(--accent2); }
-
-  /* SCHEDULE */
-  .schedule-grid { display: grid; grid-template-columns: 60px repeat(5,1fr); gap: 4px; }
-  .sch-header { background: var(--surface2); border-radius: 6px; padding: 8px; text-align: center; font-size: 11px; font-weight: 700; color: var(--muted); font-family: 'Space Mono', monospace; }
-  .sch-time { background: var(--surface); border-radius: 6px; padding: 8px; text-align: center; font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; display: flex; align-items: center; justify-content: center; }
-  .sch-cell {
-    background: var(--surface); border-radius: 8px; padding: 10px 8px;
-    font-size: 11px; font-weight: 600; min-height: 60px;
-    display: flex; flex-direction: column; justify-content: center;
-    border: 1px solid var(--border);
-  }
-  .sch-cell.filled { border: none; }
-  .sch-cell .subj { font-weight: 700; font-size: 12px; }
-  .sch-cell .room { font-size: 10px; margin-top: 2px; opacity: 0.7; font-family: 'Space Mono', monospace; }
-  .c-blue { background: rgba(79,140,255,0.15); color: var(--accent); }
-  .c-green { background: rgba(46,255,160,0.12); color: var(--green); }
-  .c-yellow { background: rgba(255,224,102,0.12); color: var(--yellow); }
-  .c-red { background: rgba(255,79,123,0.12); color: var(--accent2); }
-  .c-purple { background: rgba(167,139,250,0.15); color: #a78bfa; }
-
-  /* MESSAGES */
-  .msg-list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-  .msg-item { padding: 16px 20px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.15s; display: flex; gap: 14px; align-items: flex-start; }
-  .msg-item:hover { background: var(--surface2); }
-  .msg-item:last-child { border-bottom: none; }
-  .msg-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
-  .msg-body { flex: 1; }
-  .msg-sender { font-size: 13px; font-weight: 700; }
-  .msg-preview { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .msg-date { font-size: 10px; color: var(--muted); font-family: 'Space Mono', monospace; }
-  .unread .msg-sender::after { content: '●'; color: var(--accent); font-size: 8px; margin-left: 6px; vertical-align: middle; }
-
-  /* TRICHE PAGE */
-  .triche-hero {
-    background: linear-gradient(135deg, rgba(255,79,123,0.08), rgba(79,140,255,0.08));
-    border: 1px solid rgba(255,79,123,0.2);
-    border-radius: 16px; padding: 24px; margin-bottom: 24px;
-    display: flex; align-items: center; gap: 16px;
-  }
-  .triche-hero-icon { font-size: 40px; }
-  .triche-hero h2 { font-size: 22px; font-weight: 800; color: var(--accent2); }
-  .triche-hero p { font-size: 12px; color: var(--muted); margin-top: 4px; }
-
-  .ia-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 24px; }
-  .ia-card {
-    background: var(--surface); border: 2px solid var(--border);
-    border-radius: 14px; padding: 18px; cursor: pointer;
-    transition: all 0.2s; display: flex; flex-direction: column; gap: 8px;
-    position: relative; overflow: hidden;
-  }
-  .ia-card:hover { transform: translateY(-2px); }
-  .ia-card.selected { border-color: var(--accent2); background: rgba(255,79,123,0.05); }
-  .ia-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-  .ia-chatgpt::before { background: linear-gradient(90deg, #10a37f, #1a7f64); }
-  .ia-claude::before { background: linear-gradient(90deg, #d4a574, #c4956a); }
-  .ia-gemini::before { background: linear-gradient(90deg, #4285f4, #ea4335, #fbbc05, #34a853); }
-  .ia-mistral::before { background: linear-gradient(90deg, #ff6b35, #f7c59f); }
-  .ia-perplexity::before { background: linear-gradient(90deg, #20b2aa, #008b8b); }
-  .ia-copilot::before { background: linear-gradient(90deg, #0078d4, #00bcf2); }
-  .ia-logo { font-size: 28px; }
-  .ia-name { font-size: 14px; font-weight: 800; }
-  .ia-desc { font-size: 11px; color: var(--muted); }
-  .ia-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-family: 'Space Mono', monospace; font-weight: 700; background: var(--surface2); color: var(--muted); margin-top: 4px; }
-
-  /* IFRAME ZONE */
-  .iframe-zone {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 14px; overflow: hidden;
-  }
-  .iframe-tabs {
-    display: flex; align-items: center; gap: 0;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface2); padding: 0 16px;
-  }
-  .iframe-tab {
-    padding: 12px 16px; font-size: 12px; font-weight: 700;
-    cursor: pointer; color: var(--muted);
-    border-bottom: 2px solid transparent;
-    transition: all 0.15s;
-  }
-  .iframe-tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
-  .iframe-tab:hover { color: var(--text); }
-
-  .iframe-content { position: relative; }
-  .ia-frame {
-    display: none; width: 100%; height: 580px; border: none;
-    background: white;
-  }
-  .ia-frame.active { display: block; }
-
-  /* Fallback quand iframe bloqué */
-  .ia-fallback {
-    display: none; height: 580px;
-    flex-direction: column; align-items: center; justify-content: center;
-    gap: 16px; text-align: center;
-  }
-  .ia-fallback.active { display: flex; }
-  .ia-fallback .big-icon { font-size: 60px; }
-  .ia-fallback h3 { font-size: 18px; font-weight: 800; }
-  .ia-fallback p { font-size: 13px; color: var(--muted); max-width: 360px; line-height: 1.6; }
-  .ia-fallback a {
-    display: inline-block; padding: 12px 28px;
-    background: var(--accent2); color: white;
-    border-radius: 8px; font-weight: 700; font-size: 13px;
-    text-decoration: none; transition: opacity 0.15s;
-  }
-  .ia-fallback a:hover { opacity: 0.85; }
-
-  /* ABSENCES */
-  .abs-list { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
-  .abs-item { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 16px; }
-  .abs-item:last-child { border-bottom: none; }
-  .abs-status { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .abs-justified { background: var(--green); }
-  .abs-unjustified { background: var(--accent2); }
-  .abs-info { flex: 1; }
-  .abs-date { font-size: 12px; font-weight: 700; }
-  .abs-detail { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .abs-badge { font-size: 10px; padding: 3px 10px; border-radius: 20px; font-family: 'Space Mono', monospace; font-weight: 700; }
-  .abs-badge.j { background: rgba(46,255,160,0.15); color: var(--green); }
-  .abs-badge.nj { background: rgba(255,79,123,0.15); color: var(--accent2); }
-
-  h3.section-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'Space Mono', monospace; }
+  body { background: #000; overflow: hidden; font-family: 'Georgia', serif; }
+  canvas { display: block; }
+  #hud { position: fixed; bottom: 20px; left: 20px; color: #fff; pointer-events:none; }
+  #health-bar-bg { width: 200px; height: 14px; background: #333; border: 2px solid #a00; border-radius: 7px; margin-top: 4px; }
+  #health-bar { height: 100%; background: linear-gradient(90deg, #c00, #f44); border-radius: 5px; transition: width 0.3s; }
+  #mana-bar-bg { width: 200px; height: 14px; background: #333; border: 2px solid #006; border-radius: 7px; margin-top: 4px; }
+  #mana-bar { height: 100%; background: linear-gradient(90deg, #00c, #44f); border-radius: 5px; transition: width 0.3s; }
+  .hud-label { font-size: 13px; color: #ddd; text-shadow: 1px 1px 2px #000; }
+  #score-panel { position: fixed; top: 20px; right: 20px; color: #ffd700; font-size: 16px; text-shadow: 0 0 8px #ffd700; text-align: right; pointer-events:none; }
+  #crosshair { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); color: rgba(255,255,255,0.7); font-size: 22px; pointer-events: none; }
+  #message { position: fixed; top: 40%; left: 50%; transform: translateX(-50%); color: #ffd700; font-size: 28px; text-shadow: 0 0 16px #ffd700; text-align: center; opacity: 0; transition: opacity 0.5s; pointer-events: none; white-space:nowrap; }
+  #controls-hint { position: fixed; top: 20px; left: 20px; color: rgba(255,255,255,0.45); font-size: 12px; line-height: 1.9; pointer-events:none; }
+  #minimap { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.6); border: 2px solid #555; border-radius: 4px; }
+  #start-screen { position: fixed; top:0; left:0; width:100%; height:100%; background: radial-gradient(ellipse at center, #1a0a2e 0%, #000 100%); display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; z-index:100; }
+  #start-screen h1 { font-size: 52px; color: #ffd700; text-shadow: 0 0 30px #ffd700, 0 0 60px #a00; margin-bottom: 10px; letter-spacing: 4px; }
+  #start-screen p { color: #aaa; margin-bottom: 20px; font-size: 16px; }
+  .start-btn { padding: 16px 48px; font-size: 20px; background: linear-gradient(135deg, #8b0000, #c00); color: #ffd700; border: 2px solid #ffd700; border-radius: 4px; cursor: pointer; transition: all 0.3s; font-family: Georgia, serif; letter-spacing: 2px; margin-top:20px; }
+  .start-btn:hover { background: linear-gradient(135deg, #c00, #f00); box-shadow: 0 0 20px #ffd700; transform: scale(1.05); }
 </style>
 </head>
 <body>
-
-<!-- SIDEBAR -->
-<div class="sidebar">
-  <div class="logo">
-    <div class="logo-title">EduSpace</div>
-    <div class="logo-sub">Portail élève v2.4</div>
+<div id="start-screen">
+  <h1>⚔️ ROYAUME DES OMBRES</h1>
+  <p>RPG 3D — Survivez aux vagues de monstres</p>
+  <div style="color:#ccc;font-size:13px;margin-bottom:10px;text-align:center;line-height:2.2">
+    🖱️ Clic = Verrouiller la souris &nbsp;|&nbsp; Clic gauche = Attaque<br>
+    ZQSD / WASD = Déplacer &nbsp;|&nbsp; Souris = Regarder<br>
+    🔮 E = Boule de feu &nbsp;|&nbsp; Shift = Sprint &nbsp;|&nbsp; Espace = Esquiver
   </div>
-  <div class="user-card">
-    <div class="avatar">ML</div>
-    <div class="user-info">
-      <div class="name">Martin L.</div>
-      <div class="class">Terminale B — 2025/26</div>
-    </div>
-  </div>
-  <nav>
-    <div class="nav-section">Principal</div>
-    <div class="nav-item active" onclick="showPage('accueil', this)">
-      <span class="nav-icon">🏠</span> Accueil
-    </div>
-    <div class="nav-item" onclick="showPage('notes', this)">
-      <span class="nav-icon">📊</span> Notes
-    </div>
-    <div class="nav-item" onclick="showPage('emploi', this)">
-      <span class="nav-icon">🗓️</span> Emploi du temps
-    </div>
-    <div class="nav-item" onclick="showPage('absences', this)">
-      <span class="nav-icon">📋</span> Absences <span class="badge">2</span>
-    </div>
-    <div class="nav-section">Communication</div>
-    <div class="nav-item" onclick="showPage('messages', this)">
-      <span class="nav-icon">✉️</span> Messages <span class="badge green">3</span>
-    </div>
-    <div class="nav-item" onclick="showPage('cahier', this)">
-      <span class="nav-icon">📚</span> Cahier de textes
-    </div>
-    <div class="nav-section">Spécial</div>
-    <div class="nav-item triche" onclick="showPage('triche', this)">
-      <span class="nav-icon">🤖</span> Triche
-    </div>
-  </nav>
+  <button class="start-btn" onclick="startGame()">COMMENCER L'AVENTURE</button>
 </div>
-
-<!-- MAIN -->
-<div class="main">
-  <div class="topbar">
-    <div>
-      <div class="page-title" id="pageTitle">Tableau de bord</div>
-      <div class="page-sub" id="pageSub">Vendredi 21 février 2026</div>
-    </div>
-    <div class="topbar-actions">
-      <div class="chip">S2 — 2025/26</div>
-      <div class="dot"></div>
-    </div>
-  </div>
-
-  <div class="content">
-
-    <!-- ACCUEIL -->
-    <div class="page active" id="page-accueil">
-      <div class="grid-4">
-        <div class="card"><div class="card-label">Moyenne générale</div><div class="card-value accent">14.8</div><div class="card-sub">↑ +0.4 ce mois</div></div>
-        <div class="card"><div class="card-label">Absences</div><div class="card-value yellow">3h</div><div class="card-sub">2 non justifiées</div></div>
-        <div class="card"><div class="card-label">Devoirs cette semaine</div><div class="card-value green">4</div><div class="card-sub">1 à rendre lundi</div></div>
-        <div class="card"><div class="card-label">Messages</div><div class="card-value red">3</div><div class="card-sub">Non lus</div></div>
-      </div>
-
-      <h3 class="section-title">Prochains cours aujourd'hui</h3>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Heure</th><th>Matière</th><th>Professeur</th><th>Salle</th></tr></thead>
-          <tbody>
-            <tr><td>10h00 – 11h00</td><td>Mathématiques</td><td>M. Dupont</td><td>B204</td></tr>
-            <tr><td>11h00 – 12h00</td><td>Physique-Chimie</td><td>Mme Renard</td><td>Labo 3</td></tr>
-            <tr><td>14h00 – 15h00</td><td>Histoire-Géo</td><td>M. Bernard</td><td>A112</td></tr>
-            <tr><td>15h00 – 16h00</td><td>Anglais</td><td>Mme Smith</td><td>C308</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3 class="section-title">Dernières notes</h3>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Date</th><th>Matière</th><th>Devoir</th><th>Note</th><th>Classe</th></tr></thead>
-          <tbody>
-            <tr><td>18/02</td><td>Mathématiques</td><td>DS n°4 — Intégrales</td><td><span class="note-badge note-high">17/20</span></td><td>12.4</td></tr>
-            <tr><td>15/02</td><td>Français</td><td>Commentaire composé</td><td><span class="note-badge note-mid">13/20</span></td><td>11.8</td></tr>
-            <tr><td>12/02</td><td>Physique</td><td>TP — Optique</td><td><span class="note-badge note-high">16/20</span></td><td>13.2</td></tr>
-            <tr><td>08/02</td><td>Histoire</td><td>Dissertation</td><td><span class="note-badge note-low">09/20</span></td><td>10.5</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- NOTES -->
-    <div class="page" id="page-notes">
-      <div class="grid-3">
-        <div class="card"><div class="card-label">Moyenne S2</div><div class="card-value accent">14.8</div></div>
-        <div class="card"><div class="card-label">Meilleure matière</div><div class="card-value green">Maths</div></div>
-        <div class="card"><div class="card-label">À améliorer</div><div class="card-value red">Histoire</div></div>
-      </div>
-      <div class="table-wrap">
-        <div class="table-head">Toutes les notes — Semestre 2</div>
-        <table>
-          <thead><tr><th>Date</th><th>Matière</th><th>Type</th><th>Note</th><th>Moy. classe</th><th>Coeff.</th></tr></thead>
-          <tbody>
-            <tr><td>18/02</td><td>Mathématiques</td><td>DS</td><td><span class="note-badge note-high">17/20</span></td><td>12.4</td><td>4</td></tr>
-            <tr><td>15/02</td><td>Français</td><td>Commentaire</td><td><span class="note-badge note-mid">13/20</span></td><td>11.8</td><td>3</td></tr>
-            <tr><td>12/02</td><td>Physique-Chimie</td><td>TP</td><td><span class="note-badge note-high">16/20</span></td><td>13.2</td><td>2</td></tr>
-            <tr><td>08/02</td><td>Histoire-Géo</td><td>Dissertation</td><td><span class="note-badge note-low">09/20</span></td><td>10.5</td><td>3</td></tr>
-            <tr><td>05/02</td><td>Anglais</td><td>Oral</td><td><span class="note-badge note-high">18/20</span></td><td>14.1</td><td>3</td></tr>
-            <tr><td>01/02</td><td>Mathématiques</td><td>Interrogation</td><td><span class="note-badge note-mid">14/20</span></td><td>11.9</td><td>2</td></tr>
-            <tr><td>28/01</td><td>SVT</td><td>DS</td><td><span class="note-badge note-mid">15/20</span></td><td>12.8</td><td>3</td></tr>
-            <tr><td>25/01</td><td>Philosophie</td><td>Dissertation</td><td><span class="note-badge note-low">11/20</span></td><td>10.2</td><td>3</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- EMPLOI DU TEMPS -->
-    <div class="page" id="page-emploi">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;">
-        <div class="schedule-grid">
-          <div class="sch-header"></div>
-          <div class="sch-header">Lundi</div>
-          <div class="sch-header">Mardi</div>
-          <div class="sch-header">Mercredi</div>
-          <div class="sch-header">Jeudi</div>
-          <div class="sch-header">Vendredi</div>
-
-          <div class="sch-time">8h</div>
-          <div class="sch-cell filled c-blue"><div class="subj">Maths</div><div class="room">B204</div></div>
-          <div class="sch-cell"></div>
-          <div class="sch-cell filled c-green"><div class="subj">SVT</div><div class="room">Labo1</div></div>
-          <div class="sch-cell filled c-yellow"><div class="subj">Histoire</div><div class="room">A112</div></div>
-          <div class="sch-cell"></div>
-
-          <div class="sch-time">9h</div>
-          <div class="sch-cell filled c-blue"><div class="subj">Maths</div><div class="room">B204</div></div>
-          <div class="sch-cell filled c-red"><div class="subj">Français</div><div class="room">A201</div></div>
-          <div class="sch-cell filled c-green"><div class="subj">SVT</div><div class="room">Labo1</div></div>
-          <div class="sch-cell"></div>
-          <div class="sch-cell filled c-purple"><div class="subj">Philo</div><div class="room">A103</div></div>
-
-          <div class="sch-time">10h</div>
-          <div class="sch-cell"></div>
-          <div class="sch-cell filled c-red"><div class="subj">Français</div><div class="room">A201</div></div>
-          <div class="sch-cell"></div>
-          <div class="sch-cell filled c-blue"><div class="subj">Maths</div><div class="room">B204</div></div>
-          <div class="sch-cell filled c-purple"><div class="subj">Philo</div><div class="room">A103</div></div>
-
-          <div class="sch-time">11h</div>
-          <div class="sch-cell filled c-yellow"><div class="subj">Physique</div><div class="room">Lab3</div></div>
-          <div class="sch-cell"></div>
-          <div class="sch-cell"></div>
-          <div class="sch-cell filled c-green"><div class="subj">SVT</div><div class="room">Labo2</div></div>
-          <div class="sch-cell filled c-blue"><div class="subj">Maths</div><div class="room">B102</div></div>
-
-          <div class="sch-time">14h</div>
-          <div class="sch-cell filled c-purple"><div class="subj">Anglais</div><div class="room">C308</div></div>
-          <div class="sch-cell filled c-yellow"><div class="subj">Histoire</div><div class="room">A112</div></div>
-          <div class="sch-cell filled c-blue"><div class="subj">Maths</div><div class="room">B204</div></div>
-          <div class="sch-cell"></div>
-          <div class="sch-cell filled c-red"><div class="subj">Français</div><div class="room">A201</div></div>
-
-          <div class="sch-time">15h</div>
-          <div class="sch-cell filled c-purple"><div class="subj">Anglais</div><div class="room">C308</div></div>
-          <div class="sch-cell filled c-green"><div class="subj">SVT</div><div class="room">Labo2</div></div>
-          <div class="sch-cell filled c-yellow"><div class="subj">Physique</div><div class="room">Lab3</div></div>
-          <div class="sch-cell filled c-red"><div class="subj">Français</div><div class="room">A201</div></div>
-          <div class="sch-cell"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ABSENCES -->
-    <div class="page" id="page-absences">
-      <div class="grid-3">
-        <div class="card"><div class="card-label">Total absences</div><div class="card-value yellow">3h</div></div>
-        <div class="card"><div class="card-label">Justifiées</div><div class="card-value green">1h</div></div>
-        <div class="card"><div class="card-label">Non justifiées</div><div class="card-value red">2h</div></div>
-      </div>
-      <h3 class="section-title">Historique</h3>
-      <div class="abs-list">
-        <div class="abs-item">
-          <div class="abs-status abs-unjustified"></div>
-          <div class="abs-info">
-            <div class="abs-date">Lundi 10 février 2026 — 8h00 à 9h00</div>
-            <div class="abs-detail">Mathématiques · M. Dupont · Salle B204</div>
-          </div>
-          <div class="abs-badge nj">Non justifiée</div>
-        </div>
-        <div class="abs-item">
-          <div class="abs-status abs-unjustified"></div>
-          <div class="abs-info">
-            <div class="abs-date">Jeudi 6 février 2026 — 14h00 à 15h00</div>
-            <div class="abs-detail">Physique-Chimie · Mme Renard · Labo 3</div>
-          </div>
-          <div class="abs-badge nj">Non justifiée</div>
-        </div>
-        <div class="abs-item">
-          <div class="abs-status abs-justified"></div>
-          <div class="abs-info">
-            <div class="abs-date">Mardi 28 janvier 2026 — 9h00 à 10h00</div>
-            <div class="abs-detail">Français · Mme Duval · Salle A201</div>
-          </div>
-          <div class="abs-badge j">Justifiée</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MESSAGES -->
-    <div class="page" id="page-messages">
-      <div class="msg-list">
-        <div class="msg-item unread">
-          <div class="msg-avatar" style="background:rgba(79,140,255,0.2);color:var(--accent);">DD</div>
-          <div class="msg-body">
-            <div class="msg-sender">M. Dupont — Mathématiques</div>
-            <div class="msg-preview">Rappel : DS de mathématiques lundi 24 février sur les fonctions dérivées...</div>
-          </div>
-          <div class="msg-date">Hier 17h32</div>
-        </div>
-        <div class="msg-item unread">
-          <div class="msg-avatar" style="background:rgba(46,255,160,0.15);color:var(--green);">DP</div>
-          <div class="msg-body">
-            <div class="msg-sender">Direction — M. Pelletier</div>
-            <div class="msg-preview">Votre absence du 10 février n'a pas été justifiée. Merci de fournir...</div>
-          </div>
-          <div class="msg-date">Hier 09h15</div>
-        </div>
-        <div class="msg-item unread">
-          <div class="msg-avatar" style="background:rgba(255,224,102,0.15);color:var(--yellow);">AS</div>
-          <div class="msg-body">
-            <div class="msg-sender">Mme Smith — Anglais</div>
-            <div class="msg-preview">Votre exposé oral est prévu pour vendredi 28 février. N'oubliez pas...</div>
-          </div>
-          <div class="msg-date">18/02</div>
-        </div>
-        <div class="msg-item">
-          <div class="msg-avatar" style="background:rgba(167,139,250,0.15);color:#a78bfa;">VB</div>
-          <div class="msg-body">
-            <div class="msg-sender">Mme Bernard — Histoire-Géo</div>
-            <div class="msg-preview">Bravo pour votre rendu de dissertation ! Quelques pistes d'amélioration...</div>
-          </div>
-          <div class="msg-date">15/02</div>
-        </div>
-        <div class="msg-item">
-          <div class="msg-avatar" style="background:rgba(255,79,123,0.15);color:var(--accent2);">ER</div>
-          <div class="msg-body">
-            <div class="msg-sender">Mme Renard — Physique-Chimie</div>
-            <div class="msg-preview">Le compte-rendu de TP est à remettre pour lundi au plus tard...</div>
-          </div>
-          <div class="msg-date">12/02</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- CAHIER DE TEXTES -->
-    <div class="page" id="page-cahier">
-      <div class="table-wrap">
-        <div class="table-head">Devoirs à venir</div>
-        <table>
-          <thead><tr><th>À rendre</th><th>Matière</th><th>Travail</th><th>Prof</th></tr></thead>
-          <tbody>
-            <tr><td><span class="note-badge note-low">Lundi 24/02</span></td><td>Mathématiques</td><td>DS — Fonctions dérivées (ch.5 à ch.7)</td><td>M. Dupont</td></tr>
-            <tr><td><span class="note-badge note-mid">Vendredi 28/02</span></td><td>Anglais</td><td>Exposé oral — Modern Society</td><td>Mme Smith</td></tr>
-            <tr><td><span class="note-badge note-mid">Lundi 03/03</span></td><td>Physique-Chimie</td><td>Compte-rendu TP — Électricité</td><td>Mme Renard</td></tr>
-            <tr><td><span class="note-badge note-high">Vendredi 07/03</span></td><td>Histoire-Géo</td><td>Carte mentale — La mondialisation</td><td>M. Bernard</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- TRICHE PAGE -->
-    <div class="page" id="page-triche">
-      <div class="triche-hero">
-        <div class="triche-hero-icon">🤖</div>
-        <div>
-          <h2>Espace IA — Triche</h2>
-          <p>Accède aux meilleures IA directement depuis EduSpace. Choisis un assistant ci-dessous.</p>
-        </div>
-      </div>
-
-      <h3 class="section-title">Choisir une IA</h3>
-      <div class="ia-grid">
-        <div class="ia-card ia-chatgpt selected" onclick="selectIA('chatgpt', this)">
-          <div class="ia-logo">🟢</div>
-          <div class="ia-name">ChatGPT</div>
-          <div class="ia-desc">OpenAI · GPT-4o</div>
-          <div class="ia-tag">Généraliste</div>
-        </div>
-        <div class="ia-card ia-claude" onclick="selectIA('claude', this)">
-          <div class="ia-logo">🟠</div>
-          <div class="ia-name">Claude</div>
-          <div class="ia-desc">Anthropic · Sonnet 4</div>
-          <div class="ia-tag">Raisonnement</div>
-        </div>
-        <div class="ia-card ia-gemini" onclick="selectIA('gemini', this)">
-          <div class="ia-logo">💎</div>
-          <div class="ia-name">Gemini</div>
-          <div class="ia-desc">Google · Gemini 2.0</div>
-          <div class="ia-tag">Multimodal</div>
-        </div>
-        <div class="ia-card ia-perplexity" onclick="selectIA('perplexity', this)">
-          <div class="ia-logo">🔍</div>
-          <div class="ia-name">Perplexity</div>
-          <div class="ia-desc">Perplexity AI</div>
-          <div class="ia-tag">Recherche web</div>
-        </div>
-        <div class="ia-card ia-mistral" onclick="selectIA('mistral', this)">
-          <div class="ia-logo">🌬️</div>
-          <div class="ia-name">Le Chat</div>
-          <div class="ia-desc">Mistral AI · Français 🇫🇷</div>
-          <div class="ia-tag">Français natif</div>
-        </div>
-        <div class="ia-card ia-copilot" onclick="selectIA('copilot', this)">
-          <div class="ia-logo">🪟</div>
-          <div class="ia-name">Copilot</div>
-          <div class="ia-desc">Microsoft · GPT-4</div>
-          <div class="ia-tag">Intégré Office</div>
-        </div>
-      </div>
-
-      <div class="iframe-zone">
-        <div class="iframe-tabs">
-          <div class="iframe-tab active" id="tab-label">🟢 ChatGPT</div>
-          <div style="margin-left:auto;padding:12px 0;font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;" id="tab-url">chat.openai.com</div>
-        </div>
-        <div class="iframe-content">
-
-          <!-- CHATGPT -->
-          <div id="frame-chatgpt" class="ia-fallback active">
-            <div class="big-icon">🟢</div>
-            <h3>ChatGPT — OpenAI</h3>
-            <p>ChatGPT bloque l'intégration en iframe pour des raisons de sécurité. Clique ci-dessous pour l'ouvrir dans un nouvel onglet.</p>
-            <a href="https://chat.openai.com" target="_blank">Ouvrir ChatGPT →</a>
-          </div>
-
-          <!-- CLAUDE -->
-          <div id="frame-claude" class="ia-fallback">
-            <div class="big-icon">🟠</div>
-            <h3>Claude — Anthropic</h3>
-            <p>Claude bloque l'intégration en iframe pour des raisons de sécurité. Clique ci-dessous pour l'ouvrir dans un nouvel onglet.</p>
-            <a href="https://claude.ai" target="_blank">Ouvrir Claude →</a>
-          </div>
-
-          <!-- GEMINI -->
-          <div id="frame-gemini" class="ia-fallback">
-            <div class="big-icon">💎</div>
-            <h3>Gemini — Google</h3>
-            <p>Gemini bloque l'intégration en iframe pour des raisons de sécurité. Clique ci-dessous pour l'ouvrir dans un nouvel onglet.</p>
-            <a href="https://gemini.google.com" target="_blank">Ouvrir Gemini →</a>
-          </div>
-
-          <!-- PERPLEXITY -->
-          <div id="frame-perplexity" class="ia-fallback">
-            <div class="big-icon">🔍</div>
-            <h3>Perplexity AI</h3>
-            <p>Perplexity bloque l'intégration en iframe pour des raisons de sécurité. Clique ci-dessous pour l'ouvrir dans un nouvel onglet.</p>
-            <a href="https://www.perplexity.ai" target="_blank">Ouvrir Perplexity →</a>
-          </div>
-
-          <!-- MISTRAL -->
-          <div id="frame-mistral" class="ia-fallback">
-            <div class="big-icon">🌬️</div>
-            <h3>Le Chat — Mistral AI</h3>
-            <p>Mistral Le Chat bloque l'intégration en iframe pour des raisons de sécurité. Clique ci-dessous pour l'ouvrir dans un nouvel onglet.</p>
-            <a href="https://chat.mistral.ai" target="_blank">Ouvrir Le Chat →</a>
-          </div>
-
-          <!-- COPILOT -->
-          <div id="frame-copilot" class="ia-fallback">
-            <div class="big-icon">🪟</div>
-            <h3>Microsoft Copilot</h3>
-            <p>Copilot bloque l'intégration en iframe pour des raisons de sécurité. Clique ci-dessous pour l'ouvrir dans un nouvel onglet.</p>
-            <a href="https://copilot.microsoft.com" target="_blank">Ouvrir Copilot →</a>
-          </div>
-
-        </div>
-      </div>
-
-      <div style="background:rgba(255,79,123,0.06);border:1px solid rgba(255,79,123,0.15);border-radius:10px;padding:14px 18px;margin-top:16px;font-size:12px;color:var(--muted);line-height:1.7;">
-        ⚠️ <strong style="color:var(--accent2);">Note technique :</strong> Les grands sites d'IA (ChatGPT, Claude, Gemini…) bloquent tous l'intégration dans des iframes via des règles de sécurité HTTP (<code>X-Frame-Options</code>). C'est une limitation du web, pas du site. Chaque bouton ouvre l'IA dans un nouvel onglet.
-      </div>
-    </div>
-
-  </div>
+<div id="hud">
+  <div class="hud-label">❤️ Vie &nbsp; <span id="hp-text">100/100</span></div>
+  <div id="health-bar-bg"><div id="health-bar" style="width:100%"></div></div>
+  <div class="hud-label" style="margin-top:6px">🔮 Mana &nbsp; <span id="mana-text">100/100</span></div>
+  <div id="mana-bar-bg"><div id="mana-bar" style="width:100%"></div></div>
+  <div class="hud-label" style="margin-top:8px">⚔️ Niveau <span id="level-text">1</span> &nbsp;|&nbsp; XP: <span id="xp-text">0/100</span></div>
 </div>
-
+<div id="score-panel">
+  <div>💀 Tués: <span id="kill-count">0</span></div>
+  <div>🌊 Vague: <span id="wave-text">1</span></div>
+  <div>⭐ Score: <span id="score-text">0</span></div>
+</div>
+<div id="crosshair">+</div>
+<div id="message"></div>
+<div id="controls-hint">
+  ZQSD/WASD — Déplacer<br>
+  Souris — Regarder<br>
+  Clic gauche — Attaque<br>
+  E — Boule de feu<br>
+  Espace — Esquiver<br>
+  Shift — Sprint
+</div>
+<canvas id="minimap" width="120" height="120"></canvas>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-  const pageTitles = {
-    accueil: ['Tableau de bord', 'Vendredi 21 février 2026'],
-    notes: ['Mes notes', 'Semestre 2 — 2025/2026'],
-    emploi: ["Emploi du temps", 'Semaine du 17 au 21 février 2026'],
-    absences: ['Absences & retards', 'Année scolaire 2025/2026'],
-    messages: ['Messagerie', '3 messages non lus'],
-    cahier: ['Cahier de textes', 'Devoirs et leçons à venir'],
-    triche: ['🤖 Espace Triche — IA', 'Accès aux intelligences artificielles']
-  };
+var scene, camera, renderer, clock;
+var playerGroup;
+var enemies = [], projectiles = [], particles = [];
+var keys = {};
+var yaw = 0, pitch = 0;
+var hp = 100, maxHp = 100, mana = 100, maxMana = 100;
+var xp = 0, level = 1, xpToLevel = 100;
+var kills = 0, score = 0, wave = 1;
+var gameRunning = false;
+var attackCD = 0, spellCD = 0, dodgeCD = 0, invincible = 0;
+var torches = [], torchLights = [];
+var waveActive = false;
+var miniCtx;
+var playerPos = new THREE.Vector3(0, 1.6, 0);
+var ARENA = 38;
+var msgTimeout;
 
-  function showPage(name, el) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    document.getElementById('page-' + name).classList.add('active');
-    el.classList.add('active');
-    const [title, sub] = pageTitles[name];
-    document.getElementById('pageTitle').textContent = title;
-    document.getElementById('pageSub').textContent = sub;
+function startGame() {
+  document.getElementById('start-screen').style.display = 'none';
+  init();
+  gameRunning = true;
+  spawnWave();
+}
+
+function init() {
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x080415, 0.038);
+  scene.background = new THREE.Color(0x040110);
+  camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 200);
+  camera.position.copy(playerPos);
+  renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  document.body.appendChild(renderer.domElement);
+  clock = new THREE.Clock();
+  scene.add(new THREE.AmbientLight(0x110820, 0.9));
+  var moon = new THREE.DirectionalLight(0x3030aa, 0.4);
+  moon.position.set(10,30,10); scene.add(moon);
+  buildArena(); buildPlayer();
+  miniCtx = document.getElementById('minimap').getContext('2d');
+  document.addEventListener('keydown', function(e){ keys[e.code]=true; if(e.code==='KeyE') castFireball(); e.preventDefault(); });
+  document.addEventListener('keyup', function(e){ keys[e.code]=false; });
+  document.addEventListener('mousemove', function(e){
+    if(document.pointerLockElement){
+      yaw -= e.movementX * 0.002;
+      pitch = Math.max(-0.55, Math.min(0.55, pitch - e.movementY*0.002));
+    }
+  });
+  document.addEventListener('mousedown', function(e){
+    if(!document.pointerLockElement){ renderer.domElement.requestPointerLock(); }
+    else if(e.button===0){ meleeAttack(); }
+  });
+  window.addEventListener('resize', function(){
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+  animate();
+}
+
+function buildArena() {
+  var floorGeo = new THREE.PlaneGeometry(ARENA*2, ARENA*2, 30, 30);
+  var pos = floorGeo.attributes.position;
+  for(var i=0;i<pos.count;i++){ pos.setZ(i, (Math.random()-0.5)*0.12); }
+  floorGeo.computeVertexNormals();
+  var floor = new THREE.Mesh(floorGeo, new THREE.MeshLambertMaterial({color:0x1a1025}));
+  floor.rotation.x = -Math.PI/2; floor.receiveShadow = true; scene.add(floor);
+  var wm = new THREE.MeshLambertMaterial({color:0x2a1045});
+  [[0,3,-ARENA,ARENA*2,6,1],[0,3,ARENA,ARENA*2,6,1],[-ARENA,3,0,1,6,ARENA*2],[ARENA,3,0,1,6,ARENA*2]].forEach(function(d){
+    var w = new THREE.Mesh(new THREE.BoxGeometry(d[3],d[4],d[5]),wm);
+    w.position.set(d[0],d[1],d[2]); w.castShadow=true; scene.add(w);
+  });
+  for(var i=0;i<12;i++){
+    var a=(i/12)*Math.PI*2, r=ARENA*0.72;
+    var px=Math.cos(a)*r, pz=Math.sin(a)*r;
+    var pillar=new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.52,7,8),new THREE.MeshLambertMaterial({color:0x3a1a5a}));
+    pillar.position.set(px,3.5,pz); pillar.castShadow=true; scene.add(pillar);
+    var flame=new THREE.Mesh(new THREE.SphereGeometry(0.18,6,6),new THREE.MeshBasicMaterial({color:0xff5500}));
+    flame.position.set(px,7,pz); scene.add(flame); torches.push(flame);
+    var tl=new THREE.PointLight(0xff3300,1.8,12);
+    tl.position.set(px,7,pz); scene.add(tl); torchLights.push(tl);
   }
-
-  const iaData = {
-    chatgpt: { label: '🟢 ChatGPT', url: 'chat.openai.com' },
-    claude:  { label: '🟠 Claude',  url: 'claude.ai' },
-    gemini:  { label: '💎 Gemini',  url: 'gemini.google.com' },
-    perplexity: { label: '🔍 Perplexity', url: 'perplexity.ai' },
-    mistral: { label: '🌬️ Le Chat', url: 'chat.mistral.ai' },
-    copilot: { label: '🪟 Copilot', url: 'copilot.microsoft.com' }
-  };
-
-  function selectIA(name, el) {
-    document.querySelectorAll('.ia-card').forEach(c => c.classList.remove('selected'));
-    el.classList.add('selected');
-    document.querySelectorAll('.ia-fallback, .ia-frame').forEach(f => { f.classList.remove('active'); });
-    document.getElementById('frame-' + name).classList.add('active');
-    document.getElementById('tab-label').textContent = iaData[name].label;
-    document.getElementById('tab-url').textContent = iaData[name].url;
+  for(var i=0;i<18;i++){
+    var rock=new THREE.Mesh(new THREE.DodecahedronGeometry(Math.random()*0.45+0.2),new THREE.MeshLambertMaterial({color:0x332244}));
+    rock.position.set((Math.random()-0.5)*ARENA*1.7,0.2,(Math.random()-0.5)*ARENA*1.7);
+    rock.rotation.set(Math.random()*6,Math.random()*6,Math.random()*6);
+    rock.castShadow=true; scene.add(rock);
   }
+}
+
+function buildPlayer() {
+  playerGroup = new THREE.Group();
+  var body=new THREE.Mesh(new THREE.BoxGeometry(0.55,1,0.28),new THREE.MeshLambertMaterial({color:0x334488}));
+  body.position.y=-0.5; playerGroup.add(body);
+  var sword=new THREE.Mesh(new THREE.BoxGeometry(0.07,0.85,0.07),new THREE.MeshLambertMaterial({color:0xcccccc}));
+  sword.position.set(0.38,-0.5,-0.3); playerGroup.add(sword);
+  playerGroup.position.copy(playerPos); scene.add(playerGroup);
+}
+
+function spawnWave() {
+  waveActive=true;
+  var count=3+wave*2;
+  showMsg('⚔️ Vague '+wave+' — '+count+' ennemis !');
+  for(var i=0;i<count;i++){ (function(idx){ setTimeout(function(){ spawnEnemy(); },idx*400); })(i); }
+}
+
+function spawnEnemy() {
+  var a=Math.random()*Math.PI*2, r=ARENA*0.82;
+  var ep=new THREE.Vector3(Math.cos(a)*r,0,Math.sin(a)*r);
+  var isSkel=wave>3&&Math.random()<0.3;
+  var col=isSkel?0xddddaa:0xaa2222;
+  var ehp=(isSkel?40:60)+wave*8;
+  var g=new THREE.Group();
+  var ebody=new THREE.Mesh(new THREE.BoxGeometry(0.7,1.2,0.4),new THREE.MeshLambertMaterial({color:col}));
+  ebody.position.y=0.6; g.add(ebody);
+  var head=new THREE.Mesh(new THREE.SphereGeometry(0.32,8,8),new THREE.MeshLambertMaterial({color:isSkel?0xeeeedd:0x881111}));
+  head.position.y=1.65; g.add(head);
+  [-0.12,0.12].forEach(function(ox){
+    var eye=new THREE.Mesh(new THREE.SphereGeometry(0.065,6,6),new THREE.MeshBasicMaterial({color:isSkel?0x00ffff:0xff4400}));
+    eye.position.set(ox,1.7,-0.27); g.add(eye);
+  });
+  var weapon=new THREE.Mesh(new THREE.BoxGeometry(0.1,0.9,0.1),new THREE.MeshLambertMaterial({color:0x555555}));
+  weapon.position.set(0.5,0.7,0); g.add(weapon);
+  var el=new THREE.PointLight(isSkel?0x00ffff:0xff2200,0.9,5);
+  el.position.y=1; g.add(el);
+  g.position.copy(ep); scene.add(g);
+  enemies.push({group:g,pos:ep.clone(),hp:ehp,maxHp:ehp,speed:2.5+wave*0.18+Math.random()*0.5,attackTimer:Math.random()*2,alive:true});
+}
+
+function meleeAttack() {
+  if(attackCD>0) return;
+  attackCD=0.5; mana=Math.min(maxMana,mana+6);
+  var dir=new THREE.Vector3(-Math.sin(yaw),0,-Math.cos(yaw));
+  enemies.forEach(function(e){
+    if(!e.alive) return;
+    var d=e.pos.distanceTo(playerPos);
+    if(d<3){ var dot=dir.dot(e.pos.clone().sub(playerPos).normalize()); if(dot>0.25){ damageEnemy(e,20+level*5); spawnHitFx(e.pos.clone(),0xffaa00); } }
+  });
+  spawnHitFx(playerPos.clone().add(dir.multiplyScalar(1.5)),0xffffff);
+}
+
+function castFireball() {
+  if(spellCD>0||mana<20){ if(mana<20) showMsg('🔮 Mana insuffisant !'); return; }
+  spellCD=1.5; mana-=20;
+  var dir=new THREE.Vector3(-Math.sin(yaw)*Math.cos(pitch),-Math.sin(pitch),-Math.cos(yaw)*Math.cos(pitch));
+  var fb=new THREE.Mesh(new THREE.SphereGeometry(0.22,8,8),new THREE.MeshBasicMaterial({color:0xff6600}));
+  fb.position.copy(playerPos); fb.position.y=camera.position.y-0.15;
+  var fl=new THREE.PointLight(0xff4400,2.5,7); fb.add(fl); scene.add(fb);
+  projectiles.push({mesh:fb,dir:dir.clone(),speed:18,damage:35+level*8,life:3});
+}
+
+function damageEnemy(e,dmg){ e.hp-=dmg; if(e.hp<=0&&e.alive) killEnemy(e); }
+
+function killEnemy(e){
+  e.alive=false; scene.remove(e.group); kills++;
+  var gxp=20+wave*5,gsc=100+wave*50; score+=gsc; xp+=gxp;
+  checkLevelUp(); spawnDeathFx(e.pos.clone());
+  showMsg('+'+gxp+' XP  +'+gsc+' pts',1200);
+  if(enemies.filter(function(x){return x.alive;}).length===0){
+    waveActive=false; wave++; setTimeout(spawnWave,3000);
+    showMsg('✨ Vague terminée ! Prochaine dans 3s...');
+  }
+}
+
+function checkLevelUp(){
+  while(xp>=xpToLevel){
+    xp-=xpToLevel; level++; xpToLevel=Math.floor(xpToLevel*1.5);
+    maxHp+=20; hp=maxHp; maxMana+=10; mana=maxMana;
+    showMsg('🌟 NIVEAU '+level+' ! Vie et Mana restaurées !',2500);
+  }
+}
+
+function spawnHitFx(pos,col){
+  for(var i=0;i<8;i++){
+    var p=new THREE.Mesh(new THREE.SphereGeometry(0.07,4,4),new THREE.MeshBasicMaterial({color:col}));
+    p.position.copy(pos);
+    var v=new THREE.Vector3((Math.random()-0.5)*5,Math.random()*4,(Math.random()-0.5)*5);
+    scene.add(p); particles.push({mesh:p,vel:v,life:0.4});
+  }
+}
+
+function spawnDeathFx(pos){
+  for(var i=0;i<22;i++){
+    var c=Math.random()>0.5?0xff2200:0xffaa00;
+    var p=new THREE.Mesh(new THREE.SphereGeometry(0.1,4,4),new THREE.MeshBasicMaterial({color:c}));
+    p.position.copy(pos); p.position.y+=0.5;
+    var v=new THREE.Vector3((Math.random()-0.5)*7,Math.random()*6+1,(Math.random()-0.5)*7);
+    scene.add(p); particles.push({mesh:p,vel:v,life:0.9});
+  }
+}
+
+function showMsg(text,dur){ dur=dur||2200; var el=document.getElementById('message'); el.textContent=text; el.style.opacity='1'; clearTimeout(msgTimeout); msgTimeout=setTimeout(function(){el.style.opacity='0';},dur); }
+
+function updatePlayer(dt){
+  if(attackCD>0) attackCD-=dt; if(spellCD>0) spellCD-=dt; if(dodgeCD>0) dodgeCD-=dt; if(invincible>0) invincible-=dt;
+  mana=Math.min(maxMana,mana+dt*8);
+  var spd=(keys['ShiftLeft']||keys['ShiftRight'])?10:6;
+  var mv=new THREE.Vector3();
+  if(keys['KeyW']||keys['ArrowUp']||keys['KeyZ']) mv.z-=1;
+  if(keys['KeyS']||keys['ArrowDown']) mv.z+=1;
+  if(keys['KeyA']||keys['ArrowLeft']||keys['KeyQ']) mv.x-=1;
+  if(keys['KeyD']||keys['ArrowRight']) mv.x+=1;
+  if(keys['Space']&&dodgeCD<=0&&mv.length()>0){ dodgeCD=1.2; invincible=0.45; showMsg('💨 Esquive !',700); }
+  if(mv.length()>0){ mv.normalize().applyEuler(new THREE.Euler(0,yaw,0)); playerPos.addScaledVector(mv,spd*dt); }
+  playerPos.x=Math.max(-(ARENA-1),Math.min(ARENA-1,playerPos.x));
+  playerPos.z=Math.max(-(ARENA-1),Math.min(ARENA-1,playerPos.z));
+  playerPos.y=1.6;
+  camera.position.copy(playerPos); camera.rotation.order='YXZ'; camera.rotation.y=yaw; camera.rotation.x=pitch;
+  playerGroup.position.copy(playerPos); playerGroup.rotation.y=yaw;
+}
+
+function updateEnemies(dt){
+  enemies.forEach(function(e){
+    if(!e.alive) return;
+    e.attackTimer-=dt;
+    var tp=playerPos.clone().sub(e.pos); tp.y=0; var dist=tp.length();
+    if(dist>0.5){ tp.normalize(); e.pos.addScaledVector(tp,e.speed*dt); e.pos.y=0; }
+    e.group.position.copy(e.pos);
+    e.group.rotation.y=Math.atan2(playerPos.x-e.pos.x,playerPos.z-e.pos.z);
+    e.group.position.y=Math.sin(Date.now()*0.003+e.pos.x)*0.05;
+    if(dist<1.9&&e.attackTimer<=0){
+      if(invincible<=0){ hp=Math.max(0,hp-(10+wave*2)); spawnHitFx(playerPos.clone(),0xff0000); if(hp<=0) gameOver(); }
+      e.attackTimer=1.5;
+    }
+  });
+}
+
+function updateProjectiles(dt){
+  for(var i=projectiles.length-1;i>=0;i--){
+    var p=projectiles[i]; p.life-=dt; p.mesh.position.addScaledVector(p.dir,p.speed*dt);
+    if(Math.random()<0.5){ var tr=new THREE.Mesh(new THREE.SphereGeometry(0.09,4,4),new THREE.MeshBasicMaterial({color:0xff4400})); tr.position.copy(p.mesh.position); scene.add(tr); particles.push({mesh:tr,vel:new THREE.Vector3(),life:0.15}); }
+    enemies.forEach(function(e){
+      if(!e.alive) return;
+      var ep=e.pos.clone(); ep.y=p.mesh.position.y;
+      if(p.mesh.position.distanceTo(ep)<1.1){ damageEnemy(e,p.damage); spawnHitFx(p.mesh.position.clone(),0xff6600); p.life=0; }
+    });
+    if(p.life<=0){ scene.remove(p.mesh); projectiles.splice(i,1); }
+  }
+}
+
+function updateParticles(dt){
+  for(var i=particles.length-1;i>=0;i--){
+    var p=particles[i]; p.life-=dt; p.vel.y-=9.8*dt; p.mesh.position.addScaledVector(p.vel,dt);
+    p.mesh.material.opacity=p.life; p.mesh.material.transparent=true;
+    if(p.life<=0){ scene.remove(p.mesh); particles.splice(i,1); }
+  }
+}
+
+function updateTorches(t){
+  torches.forEach(function(torch,i){
+    torch.position.y+=Math.sin(t*9+i)*0.002;
+    torchLights[i].intensity=(0.8+Math.sin(t*13+i*2.3)*0.3+Math.random()*0.15)*1.8;
+    torch.material.color.setHSL(0.07,1,0.4+Math.sin(t*11+i)*0.1);
+  });
+}
+
+function updateHUD(){
+  document.getElementById('health-bar').style.width=(hp/maxHp*100)+'%';
+  document.getElementById('mana-bar').style.width=(mana/maxMana*100)+'%';
+  document.getElementById('hp-text').textContent=Math.ceil(hp)+'/'+maxHp;
+  document.getElementById('mana-text').textContent=Math.floor(mana)+'/'+maxMana;
+  document.getElementById('level-text').textContent=level;
+  document.getElementById('xp-text').textContent=xp+'/'+xpToLevel;
+  document.getElementById('kill-count').textContent=kills;
+  document.getElementById('wave-text').textContent=wave;
+  document.getElementById('score-text').textContent=score;
+}
+
+function updateMinimap(){
+  var ctx=miniCtx,W=120,H=120,sc=W/(ARENA*2),cx=W/2,cy=H/2;
+  ctx.clearRect(0,0,W,H); ctx.fillStyle='rgba(0,0,0,0.75)'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#554466'; ctx.strokeRect(2,2,W-4,H-4);
+  enemies.forEach(function(e){ if(!e.alive) return; ctx.fillStyle='#ff4444'; ctx.beginPath(); ctx.arc(cx+e.pos.x*sc,cy+e.pos.z*sc,3,0,Math.PI*2); ctx.fill(); });
+  ctx.fillStyle='#44aaff'; ctx.beginPath(); ctx.arc(cx+playerPos.x*sc,cy+playerPos.z*sc,4,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle='#aaddff'; ctx.lineWidth=1.5; ctx.beginPath();
+  ctx.moveTo(cx+playerPos.x*sc,cy+playerPos.z*sc);
+  ctx.lineTo(cx+playerPos.x*sc-Math.sin(yaw)*9,cy+playerPos.z*sc-Math.cos(yaw)*9); ctx.stroke();
+}
+
+function gameOver(){
+  gameRunning=false; document.exitPointerLock();
+  var s=document.getElementById('start-screen'); s.style.display='flex';
+  s.innerHTML='<h1 style="color:#ff4444;text-shadow:0 0 30px #f00">☠️ GAME OVER</h1><p style="font-size:20px;margin:20px;text-align:center">Vague: '+wave+' &nbsp;|&nbsp; Tués: '+kills+'<br>Score: '+score+'</p><button class="start-btn" onclick="location.reload()">RECOMMENCER</button>';
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  if(!gameRunning) return;
+  var dt=Math.min(clock.getDelta(),0.05);
+  var t=clock.getElapsedTime();
+  updatePlayer(dt); updateEnemies(dt); updateProjectiles(dt); updateParticles(dt); updateTorches(t); updateHUD(); updateMinimap();
+  renderer.render(scene,camera);
+}
 </script>
 </body>
-</html>
+</html>     
